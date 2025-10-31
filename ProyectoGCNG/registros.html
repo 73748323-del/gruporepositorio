@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grupo Colina Nueva Generacion - Registro</title>
+  <style>
+    /* ESTILO OSCURO GENERAL */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #1a1a1a;
+      padding: 40px 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 450px; /* Aumentamos un poco el ancho */
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+      border: 1px solid #333;
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #ff3333;
+      text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+    }
+    .age-gate {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #aaa;
+    }
+    /* Estilos para los campos de texto */
+    input[type="email"], input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
+      background: #111;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 16px;
+    }
+    input::placeholder { color: #777; }
+    /* Estilos de botones */
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #ff3333;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px; /* Separación después del botón */
+      transition: 0.3s;
+    }
+    button:hover { background: #cc0000; }
+    /* Estilos específicos de registro */
+    .register-header {
+        font-size: 20px;
+        color: #ff3333;
+        text-align: center;
+        margin-bottom: 20px;
+        padding-top: 10px;
+        border-top: 1px solid #333;
+    }
+    .terms-box {
+        background: #0a0a0a;
+        height: 100px;
+        overflow-y: scroll;
+        border: 1px solid #444;
+        padding: 10px;
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+    .acceptance-check {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+    .acceptance-check input {
+        margin-right: 10px;
+        width: auto;
+        height: auto;
+    }
+    /* Mensajes */
+    .message { color: #ff6666; font-size: 14px; text-align: center; margin-top: 10px; display: none; }
+    .success { color: #66ff66; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo">GCNG</div>
+    
+    <div class="age-gate">
+      <p>Debes tener +18 años para entrar</p>
+    </div>
+
+    <h2 class="register-header">CREAR CUENTA</h2>
+
+    <form id="registerForm">
+      <input type="email" id="regEmail" placeholder="Correo Electrónico" required />
+      <input type="password" id="regPass" placeholder="Contraseña" required />
+      <input type="password" id="regPassConfirm" placeholder="Repetir Contraseña" required />
+      <input type="text" id="regReferral" placeholder="Código de Referido (Opcional)" />
+
+      <div class="terms-box">
+          <p>Términos y Condiciones del Servicio:</p>
+          <p>Al hacer clic en "Registrarse", usted acepta que es mayor de 18 años y se compromete a cumplir con todas las políticas de uso del sitio. Los datos personales serán tratados de acuerdo a nuestra política de privacidad, la cual prohíbe el uso de la plataforma para fines ilegales o maliciosos. El código de referido es opcional y no afecta su registro. La cuenta podrá ser suspendida si se detectan actividades sospechosas o infracciones a las normas. (Este es un texto de ejemplo).</p>
+      </div>
+
+      <div class="acceptance-check">
+          <input type="checkbox" id="termsCheck" required />
+          <label for="termsCheck">Acepto los términos y condiciones</label>
+      </div>
+      
+      <button type="submit">REGISTRARSE</button>
+    </form>
+
+    <p class="message" id="regErrorMsg">Verifica los datos (Las contraseñas deben coincidir).</p>
+    <p class="message success" id="regSuccessMsg">¡Registro exitoso! Ya puedes iniciar sesión.</p>
+  </div>
+
+  <script>
+   // ------------------------------------
+// LÓGICA DE REGISTRO
+// ------------------------------------
+document.getElementById("registerForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    // Obtener valores de los campos
+    const email = document.getElementById("regEmail").value.trim();
+    const password = document.getElementById("regPass").value;
+    const confirmPassword = document.getElementById("regPassConfirm").value;
+    const termsAccepted = document.getElementById("termsCheck").checked;
+    
+    const errorMsg = document.getElementById("regErrorMsg");
+    const successMsg = document.getElementById("regSuccessMsg");
+
+    // Ocultar mensajes anteriores
+    errorMsg.style.display = "none";
+    successMsg.style.display = "none";
+
+    // 1. Validar que las contraseñas coincidan
+    if (password !== confirmPassword) {
+        errorMsg.textContent = "¡Error! Las contraseñas no coinciden.";
+        errorMsg.style.display = "block";
+        return; // Detener el proceso
+    }
+
+    // 2. Validar que los términos estén aceptados
+    if (!termsAccepted) {
+        errorMsg.textContent = "Debes aceptar los términos y condiciones.";
+        errorMsg.style.display = "block";
+        return; // Detener el proceso
+    }
+
+    // Si todo es correcto, guardar el usuario en localStorage
+    localStorage.setItem('user', JSON.stringify({ email, password }));
+
+    // Mostrar mensaje de éxito
+    successMsg.style.display = "block";
+
+    // Redirigir a la página de inicio de sesión después de un tiempo
+    setTimeout(() => {
+        window.location.href = "Inicio.html"; // Redirigir al login
+    }, 1500);
+    
+    // Limpiar formulario
+    this.reset();
+});
+  </script>
+
+</body>
+</html>
