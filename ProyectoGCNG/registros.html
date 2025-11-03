@@ -138,52 +138,86 @@
   </div>
 
   <script>
-   // ------------------------------------
-// LÓGICA DE REGISTRO
+  // ------------------------------------
+// LÓGICA DE REGISTRO (Soporta múltiples usuarios y evita emails duplicados)
 // ------------------------------------
+
+// Migración automática: si existía la clave 'user' (antigua), migrarla a 'users' (array)
+(function migrateOldUser() {
+  try {
+    const old = localStorage.getItem('user');
+    if (!old) return;
+    const parsed = JSON.parse(old);
+    if (!parsed || !parsed.email) return;
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const exists = users.some(u => u.email && u.email.toLowerCase() === parsed.email.toLowerCase());
+    if (!exists) {
+      users.push(parsed);
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+    // eliminar la clave antigua para evitar duplicados futuros
+    localStorage.removeItem('user');
+  } catch (err) {
+    console.warn('User migration failed:', err);
+  }
+})();
+
 document.getElementById("registerForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    
-    // Obtener valores de los campos
-    const email = document.getElementById("regEmail").value.trim();
-    const password = document.getElementById("regPass").value;
-    const confirmPassword = document.getElementById("regPassConfirm").value;
-    const termsAccepted = document.getElementById("termsCheck").checked;
-    
-    const errorMsg = document.getElementById("regErrorMsg");
-    const successMsg = document.getElementById("regSuccessMsg");
+  e.preventDefault();
 
-    // Ocultar mensajes anteriores
-    errorMsg.style.display = "none";
-    successMsg.style.display = "none";
+  // Obtener valores de los campos
+  const email = document.getElementById("regEmail").value.trim();
+  const password = document.getElementById("regPass").value;
+  const confirmPassword = document.getElementById("regPassConfirm").value;
+  const termsAccepted = document.getElementById("termsCheck").checked;
 
-    // 1. Validar que las contraseñas coincidan
-    if (password !== confirmPassword) {
-        errorMsg.textContent = "¡Error! Las contraseñas no coinciden.";
-        errorMsg.style.display = "block";
-        return; // Detener el proceso
-    }
+  const errorMsg = document.getElementById("regErrorMsg");
+  const successMsg = document.getElementById("regSuccessMsg");
 
-    // 2. Validar que los términos estén aceptados
-    if (!termsAccepted) {
-        errorMsg.textContent = "Debes aceptar los términos y condiciones.";
-        errorMsg.style.display = "block";
-        return; // Detener el proceso
-    }
+  // Ocultar mensajes anteriores
+  errorMsg.style.display = "none";
+  successMsg.style.display = "none";
 
-    // Si todo es correcto, guardar el usuario en localStorage
-    localStorage.setItem('user', JSON.stringify({ email, password }));
+  // 1. Validar que las contraseñas coincidan
+  if (password !== confirmPassword) {
+    errorMsg.textContent = "¡Error! Las contraseñas no coinciden.";
+    errorMsg.style.display = "block";
+    return; // Detener el proceso
+  }
 
-    // Mostrar mensaje de éxito
-    successMsg.style.display = "block";
+  // 2. Validar que los términos estén aceptados
+  if (!termsAccepted) {
+    errorMsg.textContent = "Debes aceptar los términos y condiciones.";
+    errorMsg.style.display = "block";
+    return; // Detener el proceso
+  }
 
-    // Redirigir a la página de inicio de sesión después de un tiempo
-    setTimeout(() => {
-        window.location.href = "Inicio.html"; // Redirigir al login
-    }, 1500);
-    
-    // Limpiar formulario
-    this.reset();
+  // 3. Obtener lista de usuarios desde localStorage (array)
+  const users = JSON.parse(localStorage.getItem('users')) || [];
+
+  // Comprobar si el email ya existe (case-insensitive)
+  const emailExists = users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+  if (emailExists) {
+    errorMsg.textContent = "El correo ya está en uso. Usa otro correo o inicia sesión.";
+    errorMsg.style.display = "block";
+    return;
+  }
+
+  // Si todo es correcto, añadir el usuario al array y guardarlo
+  users.push({ email, password });
+  localStorage.setItem('users', JSON.stringify(users));
+
+  // Mostrar mensaje de éxito
+  successMsg.style.display = "block";
+
+  // Redirigir a la página de inicio de sesión después de un tiempo
+  setTimeout(() => {
+    // Asegurarse de usar el nombre de archivo correcto (minusculas)
+    window.location.href = "inicio.html";
+  }, 1200);
+
+  // Limpiar formulario
+  this.reset();
 });
   </script>
 

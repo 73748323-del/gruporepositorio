@@ -81,6 +81,7 @@
     }
     .register-link a:hover {
       background: -webkit-linear-gradient(#ff3333, #ff6666);
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-decoration: underline;
@@ -114,27 +115,54 @@
   </div>
 
   <script>
-    // USUARIOS DE PRUEBA (cambia por los tuyos)
-    const users = [
-      { email: "admin@gorecenter.com", password: "123456" },
-      { email: "user@test.com", password: "demo" }
-    ];
+    // Migración automática: si existía la clave 'user' (antigua), migrarla a 'users' (array)
+    (function migrateOldUser() {
+      try {
+        const old = localStorage.getItem('user');
+        if (!old) return;
+        const parsed = JSON.parse(old);
+        if (!parsed || !parsed.email) return;
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const exists = users.some(u => u.email && u.email.toLowerCase() === parsed.email.toLowerCase());
+        if (!exists) {
+          users.push(parsed);
+          localStorage.setItem('users', JSON.stringify(users));
+        }
+        localStorage.removeItem('user');
+      } catch (err) {
+        console.warn('User migration failed:', err);
+      }
+    })();
 
-    // LOGIN
-    // Agrega este código en tu archivo Inicio.html
-document.getElementById("loginForm").addEventListener("submit", function(e) {
+    // LOGIN: buscar usuario dentro del array 'users' guardado en localStorage
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    const email = document.querySelector('input[type="email"]').value;
+    const email = document.querySelector('input[type="email"]').value.trim();
     const password = document.querySelector('input[type="password"]').value;
 
-    const user = JSON.parse(localStorage.getItem('user'));
+    const errorMsg = document.getElementById('errorMsg');
+    const successMsg = document.getElementById('successMsg');
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
 
-    if (user && user.email === email && user.password === password) {
+    // Obtener lista de usuarios
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+
+    if (user) {
         // Guardar el estado de sesión
         localStorage.setItem('loggedIn', 'true');
-        window.location.href = "Dashboard.html"; // Redirigir al dashboard
+        // Opcional: indicar éxito rápido
+        successMsg.style.display = 'block';
+        setTimeout(() => {
+            window.location.href = "Dashboard.html";
+        }, 400);
     } else {
-        alert("Credenciales incorrectas");
+        // Mostrar mensaje de error en la página
+        errorMsg.textContent = 'Email o contraseña incorrectos';
+        errorMsg.style.display = 'block';
+        // Ocultar después de unos segundos
+        setTimeout(() => { errorMsg.style.display = 'none'; }, 3000);
     }
 });
 
